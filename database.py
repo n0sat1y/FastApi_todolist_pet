@@ -17,7 +17,7 @@ class TaskModel(Base):
 
 	id: Mapped[int] = mapped_column(primary_key=True)
 	title: Mapped[str]
-	description: Mapped[str]
+	description: Mapped[str | None]
 	is_done: Mapped[bool] = mapped_column(default=False)
 	deadline: Mapped[datetime | None]
 	created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
