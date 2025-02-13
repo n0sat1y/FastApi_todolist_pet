@@ -10,6 +10,7 @@ async def lifespan(app: FastAPI):
 	print('Бд удалена')
 	create_tables()
 	print('Бд создана')
+	#ok
 	yield
 
 
