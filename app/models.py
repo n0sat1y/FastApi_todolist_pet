@@ -1,6 +1,8 @@
 from typing import Annotated
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey
 from datetime import datetime
+
 
 from core.database import Base
 
@@ -16,6 +18,9 @@ class TaskModel(Base):
 	is_done: Mapped[bool] = mapped_column(default=False)
 	deadline: Mapped[datetime | None]
 	created_at: Mapped[created_at]
+	user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+
+	user = relationship('UserModel', back_populates='tasks')
 
 	def __repr__(self):
 		return f"{self.id} -- {self.title}"
@@ -29,6 +34,8 @@ class UserModel(Base):
 	password: Mapped[str]
 	created_at: Mapped[created_at]
 	is_active: Mapped[bool] = True
+
+	tasks = relationship('TaskModel', back_populates='user')
 
 	def __repr__(self):
 		return f"{self.email}"

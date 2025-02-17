@@ -30,7 +30,7 @@ def encode_refresh_jwt(payload):
 	payload['exp'] = settings.jwt_refresh_exp
 	return encode_jwt(payload, 'refresh')
 
-def decode_jwt(token):
+def decode_jwt(token: str) -> dict:
 	key = public_key_obj
 	algorithm = settings.jwt_encode_algorithm
 

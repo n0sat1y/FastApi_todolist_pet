@@ -1,10 +1,11 @@
 from core.database import new_session
 from models import TaskModel, UserModel
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 
 from schemas import EmailSchema, TaskAddSchema, TaskSchema, UserSchema
-from utils import encode_access_jwt, encode_refresh_jwt, hash_password, validate_password
+from utils import decode_jwt, encode_access_jwt, encode_refresh_jwt, hash_password, validate_password
 
 
 class TaskRepository:
@@ -17,10 +18,12 @@ class TaskRepository:
 			return task_model
 		
 	@classmethod
-	async def add_task(cls, data: TaskAddSchema) -> int:
+	async def add_task(cls, task_data: TaskAddSchema, token: str) -> int:
 		async with new_session() as sess:
-			task_dict = data.model_dump()
-			task = TaskModel(**task_dict)
+			user_from_token = decode_jwt(token).get('sub')
+			user = await UserRepository.get_user(user_from_token)
+			task_dict = task_data.model_dump()
+			task = TaskModel(**task_dict, user_id=user.id)
 			sess.add(task)
 			await sess.flush()
 			await sess.commit()
@@ -30,10 +33,13 @@ class UserRepository:
 	@classmethod
 	async def get_user(cls, user: EmailSchema):
 		async with new_session() as session:
-			query = select(UserModel).where(UserModel.email==user)
-			result = await session.execute(query)
-			model_user = result.scalars().first()
-			return model_user
+			try:
+				query = select(UserModel).where(UserModel.email==user)
+				result = await session.execute(query)
+				model_user = result.scalars().first()
+				return model_user
+			except:
+				raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
 
 
 	@classmethod
@@ -63,3 +69,18 @@ class UserRepository:
 			access_token = encode_access_jwt(payload)
 			refresh_token = encode_refresh_jwt(payload)
 			return {'access_token': access_token, 'refresh_token': refresh_token}
+		
+
+	@classmethod
+	async def get_tasks(cls, token):
+		async with new_session() as sess:
+			#--------PROBLEMS---------
+			# try:
+			# user = decode_jwt(token).get('sub')
+			# # user_id = await cls.get_user(user)
+			# query = select(UserModel).options(selectinload(UserModel.tasks))
+			# result = await sess.execute(query)
+			# return result
+			# except:
+			# 	raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
+			pass

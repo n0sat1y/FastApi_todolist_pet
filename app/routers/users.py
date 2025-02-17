@@ -32,3 +32,11 @@ async def get_access_from_refresh(creds: HTTPAuthorizationCredentials = Depends(
 		return TokenSchema(access_token=access_token, type='Baerer')
 	except jwt.ExpiredSignatureError:
 		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Refresh token has expired')
+	
+
+@router.get('/tasks')
+async def get_user_tasks(creds: HTTPAuthorizationCredentials = Depends(http_bearer)):
+	# token = creds.credentials
+	# tasks = await UserRepository.get_tasks(token)
+	# return {'tasks': tasks}
+	pass
