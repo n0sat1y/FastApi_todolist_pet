@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 from routers.tasks import router as task_router
 from routers.users import router as user_router
-from database import create_tables, delete_tables
+from core.database import create_tables, delete_tables
 
 from contextlib import asynccontextmanager
 

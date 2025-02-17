@@ -2,7 +2,7 @@ from typing import Annotated
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 
-from database import Base
+from core.database import Base
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
 created_at = Annotated[datetime, mapped_column(default=datetime.utcnow())]
@@ -31,4 +31,4 @@ class UserModel(Base):
 	is_active: Mapped[bool] = True
 
 	def __repr__(self):
-		return f"{self.username}"
+		return f"{self.email}"

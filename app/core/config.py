@@ -1,7 +1,19 @@
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from datetime import datetime, timedelta
 
-public_key='''-----BEGIN PUBLIC KEY-----
+
+class Settings(BaseSettings):
+	#----jwt config----
+	jwt_encode_algorithm: str = 'RS256'
+	jwt_iat: datetime = datetime.utcnow()
+	jwt_access_exp: datetime = datetime.utcnow() + timedelta(minutes=15)
+	jwt_refresh_exp: datetime = datetime.utcnow() + timedelta(days=30)
+
+	#----db----
+	db_url: str = 'sqlite+aiosqlite:///tasks.db'
+
+	#----keys----
+	public_key: str = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu1SU1LfVLPHCozMxH2Mo
 4lgOEePzNm0tRgeLezV6ffAt0gunVTLw7onLRnrq0/IzW7yWR7QkrmBL7jTKEn5u
 +qKhbwKfBstIs+bMY2Zkp18gnTxKLxoS2tFczGkPLPgizskuemMghRniWaoLcyeh
@@ -10,7 +22,7 @@ kd3qqGElvW/VDL5AaWTg0nLVkjRo9z+40RQzuVaE8AkAFmxZzow3x+VJYKdjykkJ
 cKWTjpBP2dPwVZ4WWC+9aGVd+Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbc
 mwIDAQAB
 -----END PUBLIC KEY-----'''
-secret_key='''-----BEGIN PRIVATE KEY-----
+	secret_key: str = '''-----BEGIN PRIVATE KEY-----
 MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC7VJTUt9Us8cKj
 MzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu
 NMoSfm76oqFvAp8Gy0iz5sxjZmSnXyCdPEovGhLa0VzMaQ8s+CLOyS56YyCFGeJZ
@@ -39,13 +51,4 @@ TQrKhArgLXX4v3CddjfTRJkFWDbE/CkvKZNOrcf1nhaGCPspRJj2KUkj1Fhl9Cnc
 dn/RsYEONbwQSjIfMPkvxF+8HQ==
 -----END PRIVATE KEY-----'''
 
-private_key_obj = serialization.load_pem_private_key(
-    secret_key.encode(),
-    password=None,
-    backend=default_backend()
-)
-
-public_key_obj = serialization.load_pem_public_key(
-    public_key.encode(),
-    backend=default_backend()
-)
+settings = Settings()

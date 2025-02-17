@@ -1,4 +1,4 @@
-from database import new_session
+from core.database import new_session
 from models import TaskModel, UserModel
 from sqlalchemy import select
 from fastapi import HTTPException, status

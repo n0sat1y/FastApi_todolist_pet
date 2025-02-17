@@ -3,7 +3,8 @@ from fastapi import HTTPException, status
 import jwt
 from datetime import datetime, timedelta
 
-from keys import public_key_obj, private_key_obj
+from core.keys import public_key_obj, private_key_obj
+from core.config import settings
 
 def hash_password(password: str) -> bytes:
 	salt = bcrypt.gensalt()
@@ -13,28 +14,25 @@ def hash_password(password: str) -> bytes:
 def validate_password(password: str, hashed_pw: bytes) -> bool:
 	return bcrypt.checkpw(password.encode(), hashed_pw)
 
-def encode_jwt(payload, type, timedelta_minutes=0, timedelta_days=0):
-	key: str = private_key_obj
-	algorithm: str = 'RS256'
-
-	payload['iat'] = datetime.utcnow()
-	payload['exp'] = datetime.utcnow() + timedelta(minutes=timedelta_minutes, days=timedelta_days)
+def encode_jwt(payload, type):
+	key = private_key_obj
+	algorithm = settings.jwt_encode_algorithm
+	payload['iat'] = settings.jwt_iat
 	payload['type'] = type
-	
 	token = jwt.encode(payload, key, algorithm)
 	return token
 
 def encode_access_jwt(payload):
-	token_lifetime_minutes = 15
-	return encode_jwt(payload, 'access', timedelta_minutes=token_lifetime_minutes)
+	payload['exp'] = settings.jwt_access_exp
+	return encode_jwt(payload, 'access')
 
 def encode_refresh_jwt(payload):
-	token_lifetime_days = 30
-	return encode_jwt(payload, 'refresh', timedelta_days=token_lifetime_days)
+	payload['exp'] = settings.jwt_refresh_exp
+	return encode_jwt(payload, 'refresh')
 
 def decode_jwt(token):
-	key: str = public_key_obj
-	algorithm: str = 'RS256'
+	key = public_key_obj
+	algorithm = settings.jwt_encode_algorithm
 
 	data = jwt.decode(token, key, algorithms=[algorithm])
 	return data
