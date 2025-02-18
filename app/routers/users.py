@@ -33,7 +33,7 @@ async def get_access_from_refresh(creds: HTTPAuthorizationCredentials = Depends(
 		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Refresh token has expired')
 	
 
-@router.get('/tasks', response_model=list[GetUserTasksSchema])
+@router.get('/tasks', response_model=list[GetUserTasksSchema], summary='Получить задачи пользователя')
 async def get_user_tasks(creds: HTTPAuthorizationCredentials = Depends(http_bearer)):
 	token = creds.credentials
 	tasks = await UserRepository.get_tasks(token)
