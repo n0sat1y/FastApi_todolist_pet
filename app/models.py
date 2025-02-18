@@ -33,7 +33,6 @@ class UserModel(Base):
 	email: Mapped[str] = mapped_column(unique=True)
 	password: Mapped[str]
 	created_at: Mapped[created_at]
-	is_active: Mapped[bool] = True
 
 	tasks = relationship('TaskModel', back_populates='user')
 

@@ -20,10 +20,9 @@ class TaskRepository:
 	@classmethod
 	async def add_task(cls, task_data: TaskAddSchema, token: str) -> int:
 		async with new_session() as sess:
-			user_from_token = decode_jwt(token).get('sub')
-			user = await UserRepository.get_user(user_from_token)
+			user = int(decode_jwt(token).get('sub'))
 			task_dict = task_data.model_dump()
-			task = TaskModel(**task_dict, user_id=user.id)
+			task = TaskModel(**task_dict, user_id=user)
 			sess.add(task)
 			await sess.flush()
 			await sess.commit()
@@ -54,7 +53,7 @@ class UserRepository:
 			session.add(user)
 			await session.commit()
 			await session.refresh(user)
-			return user.id
+			return user
 		
 	@classmethod
 	async def login_user(cls, user: UserSchema):
@@ -65,7 +64,7 @@ class UserRepository:
 				raise exc
 			if not validate_password(user.password, model_user.password):
 				raise exc
-			payload = {'sub': user.email}
+			payload = {'sub': str(model_user.id)}
 			access_token = encode_access_jwt(payload)
 			refresh_token = encode_refresh_jwt(payload)
 			return {'access_token': access_token, 'refresh_token': refresh_token}
@@ -75,12 +74,7 @@ class UserRepository:
 	async def get_tasks(cls, token):
 		async with new_session() as sess:
 			#--------PROBLEMS---------
-			# try:
-			# user = decode_jwt(token).get('sub')
-			# # user_id = await cls.get_user(user)
-			# query = select(UserModel).options(selectinload(UserModel.tasks))
-			# result = await sess.execute(query)
-			# return result
-			# except:
-			# 	raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
-			pass
+			decoded_token = decode_jwt(token)
+			user_id = int(decoded_token.get('sub'))
+			get_tasks = await sess.execute(select(TaskModel).filter_by(user_id=user_id))
+			return get_tasks.scalars().all()

@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from typing import Annotated
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt
 
 from repositories import UserRepository
-from schemas import GetUserIdSchema, TokenSchema, UserSchema
+from schemas import ShowUserSchema, TokenSchema, UserSchema, GetUserTasksSchema
 from utils import decode_jwt, encode_access_jwt, validate_token_type
 
 
@@ -12,10 +11,10 @@ router = APIRouter(prefix='/users', tags=['Пользователи'])
 http_bearer = HTTPBearer()
 
 
-@router.post('/register', response_model=GetUserIdSchema, summary='Регистрация пользователя')
+@router.post('/register', response_model=ShowUserSchema, summary='Регистрация пользователя')
 async def add_user(user: UserSchema = Depends()):
-	user_id = await UserRepository.create_user(user)
-	return GetUserIdSchema(user_id=user_id)
+	user = await UserRepository.create_user(user)
+	return ShowUserSchema.model_validate(user, from_attributes=True)
 
 @router.post('/login', summary='Логин')
 async def login(user: UserSchema = Depends()):
@@ -34,9 +33,9 @@ async def get_access_from_refresh(creds: HTTPAuthorizationCredentials = Depends(
 		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Refresh token has expired')
 	
 
-@router.get('/tasks')
+@router.get('/tasks', response_model=list[GetUserTasksSchema])
 async def get_user_tasks(creds: HTTPAuthorizationCredentials = Depends(http_bearer)):
-	# token = creds.credentials
-	# tasks = await UserRepository.get_tasks(token)
-	# return {'tasks': tasks}
-	pass
+	token = creds.credentials
+	tasks = await UserRepository.get_tasks(token)
+	response = [GetUserTasksSchema.model_validate(item, from_attributes=True) for item in tasks]
+	return response

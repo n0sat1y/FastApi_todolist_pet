@@ -12,10 +12,5 @@ class Settings(BaseSettings):
 	#----db----
 	db_url: str = 'sqlite+aiosqlite:///tasks.db'
 
-	#----keys----
-	public_key: str
-	secret_key: str
-
-	model_config = SettingsConfigDict(env_file='.env')
 
 settings = Settings()
