@@ -26,7 +26,7 @@ class TaskRepository:
 			sess.add(task)
 			await sess.flush()
 			await sess.commit()
-			return task.id
+			return task
 		
 class UserRepository:
 	@classmethod
@@ -73,7 +73,6 @@ class UserRepository:
 	@classmethod
 	async def get_tasks(cls, token):
 		async with new_session() as sess:
-			#--------PROBLEMS---------
 			decoded_token = decode_jwt(token)
 			user_id = int(decoded_token.get('sub'))
 			get_tasks = await sess.execute(select(TaskModel).filter_by(user_id=user_id))

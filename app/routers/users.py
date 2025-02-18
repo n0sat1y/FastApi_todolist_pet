@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt
 
 from repositories import UserRepository
-from schemas import ShowUserSchema, TokenSchema, UserSchema, GetUserTasksSchema
+from schemas import RefreshTokenSchema, ShowUserSchema, TokenSchema, UserSchema, GetUserTasksSchema
 from utils import decode_jwt, encode_access_jwt, validate_token_type
 
 
@@ -16,10 +16,10 @@ async def add_user(user: UserSchema = Depends()):
 	user = await UserRepository.create_user(user)
 	return ShowUserSchema.model_validate(user, from_attributes=True)
 
-@router.post('/login', summary='Логин')
+@router.post('/login', summary='Логин', response_model=RefreshTokenSchema, response_model_exclude_none=True)
 async def login(user: UserSchema = Depends()):
 	tokens = await UserRepository.login_user(user)
-	return TokenSchema(**tokens, type='Bearer')
+	return RefreshTokenSchema(**tokens, type='Bearer')
 
 @router.post('/refresh', response_model=TokenSchema, response_model_exclude_none=True, summary='Получить аксесс токен по рефрешу')
 async def get_access_from_refresh(creds: HTTPAuthorizationCredentials = Depends(http_bearer)):
@@ -36,6 +36,7 @@ async def get_access_from_refresh(creds: HTTPAuthorizationCredentials = Depends(
 @router.get('/tasks', response_model=list[GetUserTasksSchema], summary='Получить задачи пользователя')
 async def get_user_tasks(creds: HTTPAuthorizationCredentials = Depends(http_bearer)):
 	token = creds.credentials
+	validate_token_type(decode_jwt(token), 'access')
 	tasks = await UserRepository.get_tasks(token)
 	response = [GetUserTasksSchema.model_validate(item, from_attributes=True) for item in tasks]
 	return response

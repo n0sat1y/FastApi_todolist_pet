@@ -23,8 +23,10 @@ class ShowUserSchema(EmailSchema):
 
 class TokenSchema(BaseModel):
 	access_token: str | None = None
-	refresh_token: str | None = None
 	type: str | None = None
+
+class RefreshTokenSchema(TokenSchema):
+	refresh_token: str | None = None
 
 class GetUserIdSchema(BaseModel):
 	user_id: int
