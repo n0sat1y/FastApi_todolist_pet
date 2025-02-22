@@ -1,13 +1,13 @@
 from typing import Annotated
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 from core.database import Base
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
-created_at = Annotated[datetime, mapped_column(default=datetime.utcnow())]
+created_at = Annotated[datetime, mapped_column(default=datetime.now(timezone.utc))]
 
 class TaskModel(Base):
 	__tablename__ = 'tasks'
