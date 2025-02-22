@@ -10,7 +10,9 @@ class Settings(BaseSettings):
 	jwt_refresh_exp: datetime = datetime.now(timezone.utc) + timedelta(days=30)
 
 	#----db----
-	db_url: str = 'sqlite+aiosqlite:///tasks.db'
+	db_url: str
+
+	model_config = SettingsConfigDict(env_file='.env')
 
 
 settings = Settings()
