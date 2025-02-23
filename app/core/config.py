@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
 	#----db----
 	db_url: str
-
+	
 	model_config = SettingsConfigDict(env_file='.env')
 
 

@@ -4,3 +4,5 @@ tasks.db
 # .env
 .pytest_cache
 .vscode
+prod.db
+test.db
