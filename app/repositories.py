@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from core.database import new_session
 from models.models import TaskModel, UserModel
-from schemas import EmailSchema, TaskAddSchema, TaskSchema, UserSchema
+from schemas import EmailSchema, GetUserIdSchema, TaskAddSchema, TaskSchema, UserSchema
 from utils import decode_jwt, encode_access_jwt, encode_refresh_jwt, hash_password, validate_password
 
 class TaskRepository:
@@ -27,7 +27,8 @@ class TaskRepository:
     async def add_task(cls, task_data: TaskAddSchema, token: str) -> TaskModel:
         try:
             async with new_session() as sess:
-                user_id = int(decode_jwt(token).get('sub'))
+                user = await UserRepository.get_user_by_token(token)
+                user_id = user.id
                 task_dict = task_data.model_dump()
                 task = TaskModel(**task_dict, user_id=user_id)
                 sess.add(task)
@@ -42,10 +43,27 @@ class TaskRepository:
 
 class UserRepository:
     @classmethod
-    async def get_user(cls, user: EmailSchema) -> Optional[UserModel]:
+    async def get_user_by_token(cls, token):
+        user_id = int(decode_jwt(token).get('sub'))
+        user = await UserRepository.get_user(user_id=GetUserIdSchema(user_id=user_id))
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='User not found')
+        return user
+
+    @classmethod
+    async def get_user(cls, 
+                       user: EmailSchema = None, 
+                       user_id: GetUserIdSchema = None) -> Optional[UserModel]:
         try:
             async with new_session() as session:
-                query = select(UserModel).where(UserModel.email == user)
+                if user_id:
+                    query = select(UserModel).where(UserModel.id == user_id.user_id)
+                elif user:
+                    query = select(UserModel).where(UserModel.email == user)
+                else:
+                    raise ValueError('Either email or id must be provided')
                 result = await session.execute(query)
                 return result.scalars().first()
         except SQLAlchemyError as e:
@@ -110,7 +128,8 @@ class UserRepository:
     async def get_tasks(cls, token: str) -> List[TaskModel]:
         try:
             async with new_session() as sess:
-                user_id = int(decode_jwt(token).get('sub'))
+                user = await UserRepository.get_user_by_token(token)
+                user_id = user.id
                 query = (
                     select(TaskModel)
                     .filter_by(user_id=user_id)

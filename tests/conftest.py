@@ -3,7 +3,8 @@ import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.core.database import engine, Base, new_session
-from app.schemas import TaskSchema, UserSchema
+from app.repositories import UserRepository
+from app.schemas import TaskAddSchema, TaskSchema, UserSchema
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -32,7 +33,12 @@ async def test_user():
 
 @pytest.fixture
 async def test_task():
-    return TaskSchema(
+    return TaskAddSchema(
         title='Task',
         deadline=datetime.now(timezone.utc)
     )
+
+@pytest.fixture
+async def test_tokens(test_user):
+    tokens = await UserRepository.login_user(test_user)
+    return tokens
