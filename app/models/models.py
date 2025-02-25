@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
 from datetime import datetime, timezone
 
-from app.core.database import Base
+from core.database import Base
 
 
 intpk = Annotated[int, mapped_column(primary_key=True)]

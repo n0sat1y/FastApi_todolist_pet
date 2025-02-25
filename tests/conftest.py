@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
+from httpx import ASGITransport, AsyncClient
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.core.database import engine, Base, new_session
 from app.repositories import UserRepository
 from app.schemas import TaskAddSchema, TaskSchema, UserSchema
+from app.main import app
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -42,3 +44,11 @@ async def test_task():
 async def test_tokens(test_user):
     tokens = await UserRepository.login_user(test_user)
     return tokens
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+		transport=ASGITransport(app=app),
+		base_url='http://test'
+	) as client:
+        yield client
